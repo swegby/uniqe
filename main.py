@@ -1140,6 +1140,71 @@ def pickable_presets(presets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sel or list(presets)
 
 
+def plan_batch_tasks(char_info: List[Tuple[str, str, int, int]],
+                     per_char: int = 0, count: int = 0,
+                     consume: bool = False) -> List[Tuple[str, str, int]]:
+    """Список задач батча: (папка_персонажа, имя, индекс_видео).
+
+    char_info — (path, name, всего видео у персонажа, базовый лимит m),
+    где m учитывает режим (Последовательно / Рандом).
+
+    per_char > 0 — сделать РОВНО столько видео на каждого выбранного
+    персонажа. Если у персонажа исходников меньше, они идут по кругу —
+    уник всё равно делает каждый файл уникальным. При «Удалять 2-5» /
+    «В used» исходники расходуются, поэтому больше m не сделать.
+
+    count > 0 — общий лимит на весь батч; задачи режутся «по кругу»,
+    чтобы персонажи остались представлены равномерно, а не только первые.
+    """
+    if not char_info:
+        return []
+    # --- сколько задач у каждого персонажа ---
+    plan: List[List[Tuple[str, str, int]]] = []
+    for path, name, n, m in char_info:
+        if n <= 0:
+            continue
+        if per_char > 0:
+            k = min(per_char, m) if consume else per_char
+        else:
+            k = m
+        plan.append([(path, name, i % n) for i in range(max(0, k))])
+    if not plan:
+        return []
+    # --- общий лимит: раздаём по кругу (round-robin) ---
+    if count > 0 and sum(len(p) for p in plan) > count:
+        trimmed: List[List[Tuple[str, str, int]]] = [[] for _ in plan]
+        left = count
+        i = 0
+        while left > 0 and any(len(plan[j]) > len(trimmed[j])
+                               for j in range(len(plan))):
+            j = i % len(plan)
+            if len(trimmed[j]) < len(plan[j]):
+                trimmed[j].append(plan[j][len(trimmed[j])])
+                left -= 1
+            i += 1
+        plan = trimmed
+    # --- перемешиваем персонажей по кругу: 1-й у каждого, потом 2-й… ---
+    tasks: List[Tuple[str, str, int]] = []
+    for row in range(max(len(p) for p in plan) if plan else 0):
+        for p in plan:
+            if row < len(p):
+                tasks.append(p[row])
+    # добиваем общий лимит, если задано больше, чем исходников (без расхода)
+    if count > 0 and len(tasks) < count and not consume:
+        base = list(tasks)
+        nxt = {path: (per_char if per_char > 0 else m)
+               for path, _nm, _n, m in char_info}
+        sizes = {path: n for path, _nm, n, _m in char_info}
+        ci = 0
+        while len(tasks) < count and base:
+            path, name, _ = base[ci % len(base)]
+            n = max(1, sizes.get(path, 1))
+            tasks.append((path, name, nxt.get(path, 0) % n))
+            nxt[path] = nxt.get(path, 0) + 1
+            ci += 1
+    return tasks
+
+
 def choose_preset(presets: List[Dict[str, Any]], random_pick: bool,
                   current_idx: int = 0) -> Dict[str, Any]:
     """Один пресет для сегмента: случайный из отмеченных либо текущий."""
@@ -4717,12 +4782,14 @@ class BatchCard(SidebarCard):
         s._inner.addLayout(row1)
 
         row2 = QHBoxLayout()
-        row2.addWidget(QLabel("Сколько:"))
+        row2.addWidget(QLabel("Всего:"))
         self.count_spin = QSpinBox()
         self.count_spin.setRange(0, 10000)
         self.count_spin.setValue(0)
         self.count_spin.setSpecialValueText("0 = Auto")
         self.count_spin.setFixedWidth(90)
+        self.count_spin.setToolTip(
+            "Общий лимит видео на весь батч (0 = без лимита).")
         row2.addWidget(self.count_spin)
         row2.addStretch(1)
         row2.addWidget(QLabel("Потоков:"))
@@ -4732,6 +4799,24 @@ class BatchCard(SidebarCard):
         self.threads_spin.setFixedWidth(60)
         row2.addWidget(self.threads_spin)
         s._inner.addLayout(row2)
+
+        # ---- сколько видео на КАЖДОГО выбранного персонажа ----
+        row3 = QHBoxLayout()
+        row3.addWidget(QLabel("На персонажа:"))
+        self.per_char_spin = QSpinBox()
+        self.per_char_spin.setRange(0, 1000)
+        self.per_char_spin.setValue(0)
+        self.per_char_spin.setSpecialValueText("0 = Auto")
+        self.per_char_spin.setFixedWidth(90)
+        self.per_char_spin.setToolTip(
+            "Сколько видео сделать для КАЖДОГО выбранного персонажа.\n"
+            "Например 5 — по 5 роликов на каждого.\n"
+            "0 = Auto: столько, сколько позволяют исходники.\n"
+            "Если у персонажа меньше видео — они пойдут по кругу, "
+            "а уник сделает каждый файл уникальным.")
+        row3.addWidget(self.per_char_spin)
+        row3.addStretch(1)
+        s._inner.addLayout(row3)
 
         self.count_info = QLabel("…")
         self.count_info.setObjectName("Info")
@@ -4746,6 +4831,8 @@ class BatchCard(SidebarCard):
         hint = QLabel("Каждый персонаж из folder_1 + folder_2…5 → одно готовое Reels-видео. "
                       "«Сколько» = точное число: если исходников меньше — они ходят по кругу, "
                       "уник (🧬 Экспорт) делает каждый файл уникальным. "
+                      "«На персонажа» = сколько роликов сделать каждому выбранному "
+                      "персонажу (например 5 — по 5 на каждого). "
                       "0 = Auto: min длин для «Последовательно», len(folder_1) для «Рандом». "
                       "С «Удалять 2–5» / «В used» максимум ограничен числом исходников.")
         hint.setObjectName("Hint")
@@ -4753,7 +4840,7 @@ class BatchCard(SidebarCard):
         self.layout().addWidget(hint)
 
         for w in (self.chk_enable, self.mode_combo, self.chk_delete, self.chk_move,
-                  self.count_spin, self.threads_spin):
+                  self.count_spin, self.per_char_spin, self.threads_spin):
             if isinstance(w, QComboBox):
                 w.currentIndexChanged.connect(self._changed)
             elif isinstance(w, QCheckBox):
@@ -4771,6 +4858,7 @@ class BatchCard(SidebarCard):
             "delete": self.chk_delete.isChecked(),
             "move": self.chk_move.isChecked(),
             "count": self.count_spin.value(),
+            "per_char": self.per_char_spin.value(),
             "threads": self.threads_spin.value(),
         }
 
@@ -4778,7 +4866,7 @@ class BatchCard(SidebarCard):
         if not isinstance(cfg, dict):
             cfg = {}
         for w in (self.chk_enable, self.mode_combo, self.chk_delete, self.chk_move,
-                  self.count_spin, self.threads_spin):
+                  self.count_spin, self.per_char_spin, self.threads_spin):
             w.blockSignals(True)
         if "enabled" in cfg: self.chk_enable.setChecked(bool(cfg["enabled"]))
         if "mode" in cfg:
@@ -4787,10 +4875,13 @@ class BatchCard(SidebarCard):
         if "move" in cfg: self.chk_move.setChecked(bool(cfg["move"]))
         if "count" in cfg:
             self.count_spin.setValue(max(0, min(10000, _to_int(cfg["count"], 0))))
+        if "per_char" in cfg:
+            self.per_char_spin.setValue(
+                max(0, min(1000, _to_int(cfg["per_char"], 0))))
         if "threads" in cfg:
             self.threads_spin.setValue(max(1, min(8, _to_int(cfg["threads"], 3))))
         for w in (self.chk_enable, self.mode_combo, self.chk_delete, self.chk_move,
-                  self.count_spin, self.threads_spin):
+                  self.count_spin, self.per_char_spin, self.threads_spin):
             w.blockSignals(False)
 
     def compute_batch_info(self) -> Dict[str, Any]:
@@ -4802,25 +4893,28 @@ class BatchCard(SidebarCard):
         mode = self.mode_combo.currentIndex()
         consume = self.chk_delete.isChecked() or self.chk_move.isChecked()
         info = {"chars": [], "total": 0, "mode": mode, "others": others_len}
-        total = 0
+        char_info = []
+        base_total = 0
         for path, name, n in char_folders:
             if mode == 0:
                 m = min([n] + others_len)
             else:
                 m = n
             info["chars"].append((name, n, m))
-            total += m
-        info["base_total"] = total          # сколько задач без переиспользования
+            char_info.append((path, name, n, m))
+            base_total += m
+        info["base_total"] = base_total     # сколько задач без переиспользования
+        per_char = self.per_char_spin.value()
         cnt = self.count_spin.value()
-        if cnt > 0:
-            if total < cnt and not consume and total > 0:
-                # задано больше, чем исходников: уник делает каждый файл
-                # уникальным, исходники переиспользуются — сделаем ровно
-                # столько, сколько задал юзер
-                total = cnt
-            else:
-                total = min(total, cnt)
-        info["total"] = total
+        info["per_char"] = per_char
+        # тот же планировщик, что и в батч-воркере — цифра всегда честная
+        tasks = plan_batch_tasks(char_info, per_char=per_char, count=cnt,
+                                 consume=consume)
+        info["total"] = len(tasks)
+        per_map: Dict[str, int] = {}
+        for _p, nm, _i in tasks:
+            per_map[nm] = per_map.get(nm, 0) + 1
+        info["per_map"] = per_map
         return info
 
     def update_info(self):
@@ -4830,9 +4924,18 @@ class BatchCard(SidebarCard):
         mode_txt = "Последовательно" if info["mode"] == 0 else "Рандом"
         note = ""
         cnt = self.count_spin.value()
+        per_char = info.get("per_char", 0)
+        n_chars = len(info["chars"])
+        if per_char > 0 and n_chars:
+            note = f" • по {per_char} на каждого из {n_chars}"
+            per_map = info.get("per_map") or {}
+            short = [nm for nm, k in per_map.items() if k < per_char]
+            if short:
+                note += (f" (у {len(short)} персонажей меньше — "
+                         "ограничено исходниками)")
         if cnt > 0 and info["total"] >= cnt > info.get("base_total", 0):
-            note = (" • исходников меньше, но uniq делает каждый файл "
-                    "уникальным — исходники пойдут по кругу")
+            note += (" • исходников меньше, но uniq делает каждый файл "
+                     "уникальным — исходники пойдут по кругу")
         self.count_info.setText(
             f"В папках: {', '.join(parts)} → будет {info['total']} видео "
             f"[{mode_txt}]{note}")
@@ -5158,24 +5261,11 @@ class BatchBuildWorker(QThread):
                 else:
                     m = len(cv)
                 char_info.append((path, name, len(cv), m))
-                for i in range(m):
-                    tasks.append((path, name, i))
-            cnt = bcfg["count"]
-            if cnt > 0:
-                if len(tasks) < cnt and not consume and char_info:
-                    # юзер задал больше, чем есть исходников — делаем столько,
-                    # сколько задано: исходники ходят по кругу, а уник всё
-                    # равно делает каждый файл уникальным (рандом на каждый
-                    # прогон: цветокор/кроп/поворот/фон/зерно/GOP)
-                    next_idx = {p: m for p, _nm, _n, m in char_info}
-                    ci = 0
-                    while len(tasks) < cnt:
-                        path, name, n, _m = char_info[ci % len(char_info)]
-                        tasks.append((path, name, next_idx[path] % n))
-                        next_idx[path] += 1
-                        ci += 1
-                else:
-                    tasks = tasks[:cnt]
+            tasks = plan_batch_tasks(
+                char_info,
+                per_char=int(bcfg.get("per_char", 0) or 0),
+                count=int(bcfg.get("count", 0) or 0),
+                consume=consume)
             total = len(tasks)
             if total == 0:
                 self.failed.emit("Нечего собирать — 0 задач.")
@@ -5191,6 +5281,22 @@ class BatchBuildWorker(QThread):
             auto_send = bool(chars_cfg.get("auto_send", False))
             completed = 0
             completed_lock = threading.Lock()
+            # уникальные имена файлов: при «на персонажа» индексы исходников
+            # повторяются (идут по кругу), а потоков несколько — резервируем
+            # имя под замком, иначе два потока пишут в один файл
+            name_lock = threading.Lock()
+            used_names: set = set()
+
+            def reserve_out_path(char_name: str, vid_idx: int) -> str:
+                base = f"{char_name}_{vid_idx + 1:04d}"
+                with name_lock:
+                    cand = os.path.join(OUTPUT_DIR, base + ".mp4")
+                    k = 1
+                    while cand in used_names or os.path.exists(cand):
+                        cand = os.path.join(OUTPUT_DIR, f"{base}_{k:03d}.mp4")
+                        k += 1
+                    used_names.add(cand)
+                    return cand
 
             def pick_videos(folder1_vid: str, char_name: str, vid_idx: int) -> Optional[List[str]]:
                 paths = [folder1_vid]
@@ -5241,15 +5347,8 @@ class BatchBuildWorker(QThread):
                 vp = pick_videos(f1, char_name, vid_idx)
                 if not vp:
                     return None
-                out_name = f"{char_name}_{vid_idx + 1:04d}.mp4"
-                out_path = os.path.join(OUTPUT_DIR, out_name)
-                if os.path.exists(out_path):
-                    base, ext = os.path.splitext(out_name)
-                    k = 1
-                    while os.path.exists(out_path):
-                        out_path = os.path.join(
-                            OUTPUT_DIR, f"{base}_{k:03d}{ext}")
-                        k += 1
+                out_path = reserve_out_path(char_name, vid_idx)
+                out_name = os.path.basename(out_path)
                 geom = None
                 if exp.get("final_uniq", False):
                     geom = uniq_geom_params(
