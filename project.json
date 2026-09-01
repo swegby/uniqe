@@ -1,0 +1,821 @@
+{
+  "segments": [
+    {
+      "video": "C:\\Users\\с\\Desktop\\2323-arena-01a0097d-2323\\video_tool\\folder_1\\hf_20260809_220116_92c3a6ed-09bd-4104-973a-57e028308647.mp4",
+      "duration": 3.0,
+      "presets": [
+        {
+          "text": "POV: {rand:25-100} seconds ${rand:1.1-2.5:0.1}k. \nNo face cam needed.",
+          "relative_rect": {
+            "x": 0.0247,
+            "y": 0.053,
+            "w": 0.96,
+            "h": 0.165
+          },
+          "font_scale": 0.78,
+          "stroke_width": 2
+        },
+        {
+          "text": " Your friend works 8 hours. \nI work {rand:25-100} seconds.",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.087,
+            "w": 1.0,
+            "h": 0.203
+          },
+          "font_scale": 0.75,
+          "stroke_width": 2
+        },
+        {
+          "text": " I could literally KISS the man that showed me this",
+          "relative_rect": {
+            "x": 0.015,
+            "y": 0.537,
+            "w": 0.985,
+            "h": 0.193
+          },
+          "font_scale": 1.01,
+          "stroke_width": 2
+        },
+        {
+          "text": " How I make ${rand:1.1-2.5}k in under a minute",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.542,
+            "w": 0.97,
+            "h": 0.215
+          },
+          "font_scale": 1.06,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds = ${rand:1.1-2.5}k\nNo skills needed.",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.084,
+            "w": 0.996,
+            "h": 0.186
+          },
+          "font_scale": 0.8,
+          "stroke_width": 2
+        },
+        {
+          "text": "I made more than my dad this week in {rand:1-6} minutes",
+          "relative_rect": {
+            "x": 0.0187,
+            "y": 0.5628,
+            "w": 0.97,
+            "h": 0.225
+          },
+          "font_scale": 1.04,
+          "stroke_width": 2
+        },
+        {
+          "text": "POV: Your rent is paid\nin {rand:25-100} seconds",
+          "relative_rect": {
+            "x": 0.0257,
+            "y": 0.0586,
+            "w": 0.9743,
+            "h": 0.218
+          },
+          "font_scale": 0.86,
+          "stroke_width": 2
+        },
+        {
+          "text": "While you’re still scrolling\nI already made ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.015,
+            "y": 0.495,
+            "w": 0.978,
+            "h": 0.214
+          },
+          "font_scale": 0.75,
+          "stroke_width": 2
+        },
+        {
+          "text": " {rand:1-8} minute = ${rand:1.1-2.5}k. I’m not even joking.",
+          "relative_rect": {
+            "x": 0.0043,
+            "y": 0.5983,
+            "w": 0.981,
+            "h": 0.194
+          },
+          "font_scale": 1.0,
+          "stroke_width": 2
+        },
+        {
+          "text": " This method paid me ${rand:1.1-2.5}k in {rand:1-8} minutes",
+          "relative_rect": {
+            "x": 0.0117,
+            "y": 0.5526,
+            "w": 0.97,
+            "h": 0.205
+          },
+          "font_scale": 1.0,
+          "stroke_width": 2
+        },
+        {
+          "text": "POV: You’re {rand:16-20} and already out-earned your parents",
+          "relative_rect": {
+            "x": 0.007,
+            "y": 0.078,
+            "w": 0.993,
+            "h": 0.225
+          },
+          "font_scale": 1.0,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds. ${rand:1.1-2.5}k. Zero experience.",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.082,
+            "w": 0.985,
+            "h": 0.209
+          },
+          "font_scale": 1.0,
+          "stroke_width": 2
+        },
+        {
+          "text": "Your 9-5 made you ${rand:25-100}. \nI made ${rand:1.1-2.5}k in {rand:25-100} seconds.",
+          "relative_rect": {
+            "x": 0.008,
+            "y": 0.524,
+            "w": 0.981,
+            "h": 0.218
+          },
+          "font_scale": 0.7,
+          "stroke_width": 2
+        },
+        {
+          "text": " I almost screamed. ${rand:1.1-2.5}k in {rand:25-100} seconds.",
+          "relative_rect": {
+            "x": 0.0264,
+            "y": 0.5918,
+            "w": 0.95,
+            "h": 0.187
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": "How I cleared ${rand:1.1-2.5}k before my coffee got cold",
+          "relative_rect": {
+            "x": 0.0264,
+            "y": 0.4686,
+            "w": 0.97,
+            "h": 0.167
+          },
+          "font_scale": 0.98,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds = ${rand:1.1-2.5}k. Still can’t believe it.",
+          "relative_rect": {
+            "x": 0.019,
+            "y": 0.555,
+            "w": 0.97,
+            "h": 0.207
+          },
+          "font_scale": 1.0,
+          "stroke_width": 2
+        },
+        {
+          "text": "This took me {rand:25-100} seconds and paid ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.019,
+            "y": 0.5616,
+            "w": 0.97,
+            "h": 0.197
+          },
+          "font_scale": 0.96,
+          "stroke_width": 2
+        },
+        {
+          "text": "POV: You’re watching this instead of making ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.0123,
+            "y": 0.0074,
+            "w": 0.984,
+            "h": 0.227
+          },
+          "font_scale": 1.04,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:1-5} min = ${rand:1.1-2.5}k.\nRepeat daily.",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.5307,
+            "w": 0.9856,
+            "h": 0.233
+          },
+          "font_scale": 0.93,
+          "stroke_width": 3
+        },
+        {
+          "text": "I made rent in under 2 minutes",
+          "relative_rect": {
+            "x": 0.019,
+            "y": 0.5134,
+            "w": 0.97,
+            "h": 0.207
+          },
+          "font_scale": 0.87,
+          "stroke_width": 3
+        },
+        {
+          "text": "How I make ${rand:1.1-1.5}k in\n{rand:1-5} minutes",
+          "relative_rect": {
+            "x": 0.0033,
+            "y": 0.5444,
+            "w": 0.993,
+            "h": 0.211
+          },
+          "font_scale": 0.81,
+          "stroke_width": 3
+        },
+        {
+          "text": "POV: {rand:25-100} seconds = ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.0147,
+            "y": 0.0739,
+            "w": 0.98,
+            "h": 0.096
+          },
+          "font_scale": 0.99,
+          "stroke_width": 2
+        },
+        {
+          "text": "Your shift is 8 hours. Mine is {rand:25-100} seconds",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.5326,
+            "w": 0.9963,
+            "h": 0.186
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": " I can’t believe this is legal. ${rand:1.1-2.5}k in {rand:25-100} seconds.",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.537,
+            "w": 0.996,
+            "h": 0.206
+          },
+          "font_scale": 0.91,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds and I’m already up ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.5504,
+            "w": 0.985,
+            "h": 0.239
+          },
+          "font_scale": 0.95,
+          "stroke_width": 2
+        },
+        {
+          "text": "POV: You just made more than most people make in a day",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.0305,
+            "w": 0.9816,
+            "h": 0.216
+          },
+          "font_scale": 0.84,
+          "stroke_width": 2
+        },
+        {
+          "text": "No job. No boss.\n${rand:1.1-2.5}k in {rand:25-100} seconds.",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.609,
+            "w": 0.989,
+            "h": 0.177
+          },
+          "font_scale": 0.7,
+          "stroke_width": 2
+        },
+        {
+          "text": "How I make ${rand:1.1-2.5}k while you’re stuck at work",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.577,
+            "w": 1.0,
+            "h": 0.236
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds = ${rand:1.1-2.5}k. Dead serious.",
+          "relative_rect": {
+            "x": 0.0184,
+            "y": 0.5322,
+            "w": 0.9816,
+            "h": 0.186
+          },
+          "font_scale": 0.88,
+          "stroke_width": 2
+        },
+        {
+          "text": "This paid me more than {rand:3-7} days of work in {rand:25-100} seconds",
+          "relative_rect": {
+            "x": 0.0037,
+            "y": 0.5429,
+            "w": 0.989,
+            "h": 0.166
+          },
+          "font_scale": 0.95,
+          "stroke_width": 2
+        },
+        {
+          "text": "I made ${rand:1.1-2.5}k in the time it takes to watch this reel",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.0698,
+            "w": 0.985,
+            "h": 0.186
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:1.1-2.5}$ in {rand:25-100} seconds. Still in shock.",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.5285,
+            "w": 1.0,
+            "h": 0.166
+          },
+          "font_scale": 0.84,
+          "stroke_width": 2
+        },
+        {
+          "text": "How ordinary girls are making ${rand:1.1-2.5}k in under a minute",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.5305,
+            "w": 1.0,
+            "h": 0.176
+          },
+          "font_scale": 0.85,
+          "stroke_width": 2
+        },
+        {
+          "text": "POV: You just made ${rand:1.1-2.5}k in {rand:25-100} seconds",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.0698,
+            "w": 0.9926,
+            "h": 0.206
+          },
+          "font_scale": 0.87,
+          "stroke_width": 2
+        },
+        {
+          "text": "Stop scrolling. This made me ${rand:1.1-2.5}k in {rand:25-100} seconds",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.5822,
+            "w": 1.0,
+            "h": 0.166
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds of work = ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.007,
+            "y": 0.158,
+            "w": 0.989,
+            "h": 0.096
+          },
+          "font_scale": 0.96,
+          "stroke_width": 2
+        },
+        {
+          "text": " I out-earned my entire week in {rand:1-5} minutes",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.545,
+            "w": 1.0,
+            "h": 0.196
+          },
+          "font_scale": 0.88,
+          "stroke_width": 2
+        },
+        {
+          "text": " POV: You’re broke and I’m already finished",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.045,
+            "w": 0.984,
+            "h": 0.166
+          },
+          "font_scale": 0.9,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds. ${rand:1.1-2.5}k. No skills.",
+          "relative_rect": {
+            "x": 0.008,
+            "y": 0.5508,
+            "w": 0.992,
+            "h": 0.176
+          },
+          "font_scale": 0.81,
+          "stroke_width": 2
+        },
+        {
+          "text": "How I make ${rand:1.1-2.5}k every single day in minutes",
+          "relative_rect": {
+            "x": 0.015,
+            "y": 0.537,
+            "w": 0.985,
+            "h": 0.176
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": " This is why I don’t have a normal job anymore",
+          "relative_rect": {
+            "x": 0.0221,
+            "y": 0.0841,
+            "w": 0.9779,
+            "h": 0.166
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": " POV: {rand:25-100} seconds = ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.0184,
+            "y": 0.0805,
+            "w": 0.98,
+            "h": 0.096
+          },
+          "font_scale": 0.99,
+          "stroke_width": 2
+        },
+        {
+          "text": "Your parents worked {rand:25-50} years for this. I did it in {rand:1-8} minutes.",
+          "relative_rect": {
+            "x": 0.0074,
+            "y": 0.4892,
+            "w": 0.9926,
+            "h": 0.226
+          },
+          "font_scale": 0.84,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:1-6} minute of this = ${rand:1.1-2.5}k",
+          "relative_rect": {
+            "x": 0.011,
+            "y": 0.5071,
+            "w": 0.978,
+            "h": 0.186
+          },
+          "font_scale": 0.84,
+          "stroke_width": 2
+        },
+        {
+          "text": "I made more today in {rand:25-100} seconds than you did all day",
+          "relative_rect": {
+            "x": 0.004,
+            "y": 0.45,
+            "w": 0.989,
+            "h": 0.246
+          },
+          "font_scale": 0.86,
+          "stroke_width": 2
+        },
+        {
+          "text": "POV: You just discovered how I make ${rand:1.1-2.5}k so fast",
+          "relative_rect": {
+            "x": 0.0,
+            "y": 0.0574,
+            "w": 0.9963,
+            "h": 0.176
+          },
+          "font_scale": 0.93,
+          "stroke_width": 2
+        },
+        {
+          "text": "{rand:25-100} seconds and the money is already there",
+          "relative_rect": {
+            "x": 0.007,
+            "y": 0.535,
+            "w": 0.99,
+            "h": 0.206
+          },
+          "font_scale": 0.84,
+          "stroke_width": 2
+        }
+      ],
+      "current_idx": 1,
+      "random_pick": true,
+      "texts": [
+        "POV: {rand:25-100} seconds ${rand:1.1-2.5:0.1}k. \nNo face cam needed.",
+        " Your friend works 8 hours. \nI work {rand:25-100} seconds.",
+        " I could literally KISS the man that showed me this",
+        " How I make ${rand:1.1-2.5}k in under a minute",
+        "{rand:25-100} seconds = ${rand:1.1-2.5}k\nNo skills needed.",
+        "I made more than my dad this week in {rand:1-6} minutes",
+        "POV: Your rent is paid\nin {rand:25-100} seconds",
+        "While you’re still scrolling\nI already made ${rand:1.1-2.5}k",
+        " {rand:1-8} minute = ${rand:1.1-2.5}k. I’m not even joking.",
+        " This method paid me ${rand:1.1-2.5}k in {rand:1-8} minutes",
+        "POV: You’re {rand:16-20} and already out-earned your parents",
+        "{rand:25-100} seconds. ${rand:1.1-2.5}k. Zero experience.",
+        "Your 9-5 made you ${rand:25-100}. \nI made ${rand:1.1-2.5}k in {rand:25-100} seconds.",
+        " I almost screamed. ${rand:1.1-2.5}k in {rand:25-100} seconds.",
+        "How I cleared ${rand:1.1-2.5}k before my coffee got cold",
+        "{rand:25-100} seconds = ${rand:1.1-2.5}k. Still can’t believe it.",
+        "This took me {rand:25-100} seconds and paid ${rand:1.1-2.5}k",
+        "POV: You’re watching this instead of making ${rand:1.1-2.5}k",
+        "{rand:1-5} min = ${rand:1.1-2.5}k.\nRepeat daily.",
+        "I made rent in under 2 minutes",
+        "How I make ${rand:1.1-1.5}k in\n{rand:1-5} minutes",
+        "POV: {rand:25-100} seconds = ${rand:1.1-2.5}k",
+        "Your shift is 8 hours. Mine is {rand:25-100} seconds",
+        " I can’t believe this is legal. ${rand:1.1-2.5}k in {rand:25-100} seconds.",
+        "{rand:25-100} seconds and I’m already up ${rand:1.1-2.5}k",
+        "POV: You just made more than most people make in a day",
+        "No job. No boss.\n${rand:1.1-2.5}k in {rand:25-100} seconds.",
+        "How I make ${rand:1.1-2.5}k while you’re stuck at work",
+        "{rand:25-100} seconds = ${rand:1.1-2.5}k. Dead serious.",
+        "This paid me more than {rand:3-7} days of work in {rand:25-100} seconds",
+        "I made ${rand:1.1-2.5}k in the time it takes to watch this reel",
+        "{rand:1.1-2.5}$ in {rand:25-100} seconds. Still in shock.",
+        "How ordinary girls are making ${rand:1.1-2.5}k in under a minute",
+        "POV: You just made ${rand:1.1-2.5}k in {rand:25-100} seconds",
+        "Stop scrolling. This made me ${rand:1.1-2.5}k in {rand:25-100} seconds",
+        "{rand:25-100} seconds of work = ${rand:1.1-2.5}k",
+        " I out-earned my entire week in {rand:1-5} minutes",
+        " POV: You’re broke and I’m already finished",
+        "{rand:25-100} seconds. ${rand:1.1-2.5}k. No skills.",
+        "How I make ${rand:1.1-2.5}k every single day in minutes",
+        " This is why I don’t have a normal job anymore",
+        " POV: {rand:25-100} seconds = ${rand:1.1-2.5}k",
+        "Your parents worked {rand:25-50} years for this. I did it in {rand:1-8} minutes.",
+        "{rand:1-6} minute of this = ${rand:1.1-2.5}k",
+        "I made more today in {rand:25-100} seconds than you did all day",
+        "POV: You just discovered how I make ${rand:1.1-2.5}k so fast",
+        "{rand:25-100} seconds and the money is already there"
+      ]
+    },
+    {
+      "video": "C:\\Users\\с\\Desktop\\2323-arena-01a0097d-2323\\video_tool\\folder_2\\IMG_4339.MOV",
+      "duration": 1.8,
+      "presets": [
+        {
+          "text": "1. Open Google",
+          "relative_rect": {
+            "x": 0.1552,
+            "y": 0.5569,
+            "w": 0.6766,
+            "h": 0.1545
+          },
+          "font_scale": 1.1,
+          "stroke_width": 2
+        },
+        {
+          "text": "1. Open browser",
+          "relative_rect": {
+            "x": 0.1552,
+            "y": 0.5569,
+            "w": 0.6766,
+            "h": 0.1545
+          },
+          "font_scale": 1.1,
+          "stroke_width": 2
+        },
+        {
+          "text": "1. Go to Google",
+          "relative_rect": {
+            "x": 0.1552,
+            "y": 0.5569,
+            "w": 0.6766,
+            "h": 0.1545
+          },
+          "font_scale": 1.1,
+          "stroke_width": 2
+        }
+      ],
+      "current_idx": 2,
+      "random_pick": true,
+      "texts": [
+        "1. Open Google",
+        "1. Open browser",
+        "1. Go to Google"
+      ]
+    },
+    {
+      "video": "C:\\Users\\с\\Desktop\\2323-arena-01a0097d-2323\\video_tool\\folder_3\\IMG_4604.MOV",
+      "duration": 1.4,
+      "presets": [
+        {
+          "text": "2. Go to WAGEX",
+          "relative_rect": {
+            "x": 0.0978,
+            "y": 0.0876,
+            "w": 0.7757,
+            "h": 0.0987
+          },
+          "font_scale": 1.03,
+          "stroke_width": 2
+        },
+        {
+          "text": "2. Go to SOLEZ",
+          "relative_rect": {
+            "x": 0.0978,
+            "y": 0.0876,
+            "w": 0.7757,
+            "h": 0.0987
+          },
+          "font_scale": 1.03,
+          "stroke_width": 2
+        }
+      ],
+      "current_idx": 1,
+      "random_pick": false,
+      "texts": [
+        "2. Go to WAGEX",
+        "2. Go to SOLEZ"
+      ]
+    },
+    {
+      "video": "C:\\Users\\с\\Desktop\\2323-arena-01a0097d-2323\\video_tool\\folder_4\\IMG_4613.MOV",
+      "duration": 1.4,
+      "presets": [
+        {
+          "text": "3. Use this",
+          "relative_rect": {
+            "x": 0.0004,
+            "y": 0.6702,
+            "w": 0.9996,
+            "h": 0.149
+          },
+          "font_scale": 1.0,
+          "stroke_width": 2
+        },
+        {
+          "text": "3. Enter SWG",
+          "relative_rect": {
+            "x": 0.0114,
+            "y": 0.633,
+            "w": 0.9886,
+            "h": 0.149
+          },
+          "font_scale": 0.99,
+          "stroke_width": 2
+        },
+        {
+          "text": "3. Type SWG",
+          "relative_rect": {
+            "x": 0.0224,
+            "y": 0.6557,
+            "w": 0.9776,
+            "h": 0.149
+          },
+          "font_scale": 0.99,
+          "stroke_width": 2
+        },
+        {
+          "text": "3. Enter secret code",
+          "relative_rect": {
+            "x": 0.0324,
+            "y": 0.5962,
+            "w": 0.96,
+            "h": 0.189
+          },
+          "font_scale": 0.88,
+          "stroke_width": 2
+        },
+        {
+          "text": "3. Click SPIN",
+          "relative_rect": {
+            "x": 0.0324,
+            "y": 0.5962,
+            "w": 0.96,
+            "h": 0.189
+          },
+          "font_scale": 0.88,
+          "stroke_width": 2
+        }
+      ],
+      "current_idx": 4,
+      "random_pick": false,
+      "texts": [
+        "3. Use this",
+        "3. Enter SWG",
+        "3. Type SWG",
+        "3. Enter secret code",
+        "3. Click SPIN"
+      ]
+    },
+    {
+      "video": "C:\\Users\\с\\Desktop\\2323-arena-01a0097d-2323\\video_tool\\folder_5\\IMG_4610.MOV",
+      "duration": 2.0,
+      "presets": [
+        {
+          "text": "PROFIT",
+          "relative_rect": {
+            "x": 0.1325,
+            "y": 0.0606,
+            "w": 0.8,
+            "h": 0.22
+          },
+          "font_scale": 1.1,
+          "stroke_width": 1
+        },
+        {
+          "text": "PROFIT",
+          "relative_rect": {
+            "x": 0.1133,
+            "y": 0.6125,
+            "w": 0.7867,
+            "h": 0.2031
+          },
+          "font_scale": 1.1,
+          "stroke_width": 1
+        },
+        {
+          "text": "DONE",
+          "relative_rect": {
+            "x": 0.1133,
+            "y": 0.6125,
+            "w": 0.7867,
+            "h": 0.2031
+          },
+          "font_scale": 1.1,
+          "stroke_width": 1
+        },
+        {
+          "text": "ENJOY",
+          "relative_rect": {
+            "x": 0.1133,
+            "y": 0.6125,
+            "w": 0.7867,
+            "h": 0.2031
+          },
+          "font_scale": 1.1,
+          "stroke_width": 1
+        }
+      ],
+      "current_idx": 0,
+      "random_pick": true,
+      "texts": [
+        "PROFIT",
+        "PROFIT",
+        "DONE",
+        "ENJOY"
+      ]
+    }
+  ],
+  "export": {
+    "resolution": {
+      "label": "1080×1920 Reels",
+      "w": 1080,
+      "h": 1920
+    },
+    "resolution_index": 0,
+    "force_reels": true,
+    "fps": 30,
+    "audio": false,
+    "uppercase": false,
+    "ten_bit": false,
+    "blur_fill": false,
+    "econ": false,
+    "final_uniq": true,
+    "uniq_strength": "medium",
+    "crf": 20,
+    "preset": "fast",
+    "quality_text": "⚖️ Баланс CRF20"
+  },
+  "batch": {
+    "enabled": true,
+    "mode": 1,
+    "delete": false,
+    "move": false,
+    "count": 30,
+    "threads": 3
+  },
+  "ui": {
+    "tab": 1,
+    "sidebar_tab": 2,
+    "next_build_index": 0,
+    "video_counter": 70
+  },
+  "ffmpeg_path": ""
+}
