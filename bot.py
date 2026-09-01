@@ -481,10 +481,13 @@ def clean_metadata(path: str, ffmpeg_exe: str) -> bool:
     """Полная очистка метаданных БЕЗ перекодирования (качество 1:1).
 
     Убирает: глобальные теги, теги потоков, chapters, encoder-подписи
-    (bitexact), handler names. Remux copy → битрейт/качество не трогаются.
+    (bitexact), handler names, а также SEI-подпись x264 внутри самого
+    битстрима («x264 - core 164 … options: … crf=…»), которая прямо
+    выдаёт перекодирование и не убирается через -map_metadata.
+    Remux copy → битрейт/качество не трогаются.
     """
     tmp = path + ".clean.mp4"
-    cmd = [
+    head = [
         ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error",
         "-i", path,
         "-map", "0",
@@ -493,14 +496,26 @@ def clean_metadata(path: str, ffmpeg_exe: str) -> bool:
         "-fflags", "+bitexact",
         "-flags:v", "+bitexact",
         "-flags:a", "+bitexact",
+        "-metadata", "encoder=",
+        "-metadata:s:v", "encoder=",
+        "-metadata:s:a", "encoder=",
         "-metadata:s:v", "handler_name=",
         "-metadata:s:a", "handler_name=",
         "-movflags", "+faststart",
         "-c", "copy",
-        tmp,
     ]
+    # NAL-юнит типа 6 = SEI, там лежит подпись энкодера
+    cmd = head + ["-bsf:v", "filter_units=remove_types=6", tmp]
     try:
         r = subprocess.run(cmd, capture_output=True, timeout=300)
+        if r.returncode != 0 or not os.path.isfile(tmp) \
+                or os.path.getsize(tmp) == 0:
+            try:
+                os.remove(tmp)
+            except Exception:
+                pass
+            # ffmpeg без filter_units — чистим хотя бы теги
+            r = subprocess.run(head + [tmp], capture_output=True, timeout=300)
         if r.returncode == 0 and os.path.isfile(tmp) and os.path.getsize(tmp) > 0:
             os.replace(tmp, path)
             return True
@@ -795,7 +810,8 @@ def run_order(tg: Tg, chat_id: int, s: Dict[str, Any]) -> None:
                         ten_bit=ten_bit, blur_fill=blur_fill,
                         audio_kbps=256,
                         random_flags=None, preset_indices=None,
-                        micro_uniq=micro_uniq)
+                        micro_uniq=micro_uniq,
+                        noise_overlay=str(exp.get("noise_overlay", "") or ""))
                     if not ok:
                         errors.append(f"«{folder_name}» #{i + 1}: {err[:100]}")
                         continue

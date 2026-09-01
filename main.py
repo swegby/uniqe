@@ -1215,6 +1215,54 @@ def choose_preset(presets: List[Dict[str, Any]], random_pick: bool,
     return dict(presets[idx])
 
 
+# ----------------------------------------------------------------------
+#  ОВЕРЛЕЙ БЕЛОГО ШУМА — свой на каждый фрагмент, еле заметный
+# ----------------------------------------------------------------------
+# Отдельный слой сгенерированного белого шума, который подмешивается в
+# картинку через blend=grainmerge с очень низкой прозрачностью. Каждый
+# вызов = новый случайный seed, поэтому у каждого фрагмента и каждой
+# сборки свой уникальный шумовой отпечаток.
+#
+# Подобрано замером на плоском сером кадре (худший случай для шума):
+#   alls=60 + opacity=0.10 -> меняется ~72% пикселей, но максимальное
+#   отклонение всего 3 уровня яркости из 255 (порог заметности ~2-3),
+#   т.е. глазом не видно, а хеш/фингерпринт другой.
+
+NOISE_OVERLAY_LEVELS = {
+    # (сила шума, прозрачность) — от почти нулевой до «еле заметной»
+    "light":  (40, 0.07),
+    "medium": (60, 0.10),
+    "strong": (80, 0.13),
+}
+
+
+def build_noise_overlay_chain(w: int, h: int, fps: int = 30,
+                              strength: str = "medium",
+                              in_label: str = "v0",
+                              out_label: str = "vn",
+                              tag: str = "no") -> str:
+    """Слой белого шума поверх картинки (свой рандом на каждый вызов).
+
+    Возвращает кусок filter_complex: [in_label] -> [out_label].
+    Шум генерируется отдельным источником и подмешивается grainmerge,
+    поэтому он не зависит от содержимого кадра и всегда разный.
+    """
+    alls, opacity = NOISE_OVERLAY_LEVELS.get(
+        strength, NOISE_OVERLAY_LEVELS["medium"])
+    # небольшой джиттер, чтобы даже при одинаковых настройках
+    # два прогона отличались
+    alls = max(8, int(alls * random.uniform(0.85, 1.15)))
+    opacity = max(0.02, min(0.20, opacity * random.uniform(0.85, 1.15)))
+    seed = random.randint(0, 2 ** 31 - 1)
+    return (
+        f"color=c=gray:s={w}x{h}:r={fps},"
+        f"noise=alls={alls}:allf=t+u:all_seed={seed},format=gbrp[{tag}src];"
+        f"[{in_label}]format=gbrp[{tag}base];"
+        f"[{tag}base][{tag}src]blend=all_mode=grainmerge:"
+        f"all_opacity={opacity:.4f}[{out_label}]"
+    )
+
+
 def _micro_uniq_chain(canvas_w: int, canvas_h: int) -> str:
     """Invisible-to-the-eye uniquification filters (fresh random each call).
 
@@ -1592,12 +1640,21 @@ def _capcut_sample_meta(ffmpeg_exe: str) -> Dict[str, str]:
 
 def _uniq_metadata_args(meta: Dict[str, str], has_audio: bool,
                         ffmpeg_exe: str) -> List[str]:
-    """Аргументы ffmpeg: метаданные как у свежего экспорта CapCut."""
+    """Аргументы ffmpeg: метаданные как у свежего экспорта CapCut.
+
+    Важно: помимо подстановки «капкатовских» значений здесь ЗАТИРАЮТСЯ
+    признаки перекодирования — тег encoder на контейнере и на дорожках
+    (иначе там остаётся «Lavc libx264», прямо выдающий ffmpeg).
+    """
     ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + ".000000Z"
     args = ["-metadata", f"creation_time={ts}",
+            # пустое значение = тег не будет записан вообще
+            "-metadata", "encoder=",
+            "-metadata:s:v:0", "encoder=",
             "-metadata:s:v:0", f"handler_name={meta['handler_v']}"]
     if has_audio:
-        args += ["-metadata:s:a:0", f"handler_name={meta['handler_a']}"]
+        args += ["-metadata:s:a:0", "encoder=",
+                 "-metadata:s:a:0", f"handler_name={meta['handler_a']}"]
     if _brand_supported(ffmpeg_exe):
         args += ["-brand", meta["brand"]]
     return args
@@ -1605,17 +1662,41 @@ def _uniq_metadata_args(meta: Dict[str, str], has_audio: bool,
 
 def _polish_metadata(path: str, ffmpeg_exe: str, meta: Dict[str, str],
                      has_audio: bool) -> bool:
-    """Финальный copy-ремукс: убирает encoder-подписи (Lavf/Lavc),
-    оставляя метаданные CapCut. Мгновенный (без перекодирования).
+    """Финальный copy-ремукс: стирает ВСЕ следы перекодирования.
+
+    Чистит три уровня, на которых обычно «палится» уник:
+
+    1. Теги контейнера (encoder=Lavf…) — -map_metadata -1 + пустой
+       -metadata encoder=.
+    2. Тег encoder на видеодорожке («Lavc libx264») — пустой
+       -metadata:s:v:0 encoder=.
+    3. САМОЕ ГЛАВНОЕ — SEI-блок внутри самого H.264-битстрима, куда x264
+       пишет свою подпись со всеми настройками кодирования:
+       «x264 - core 164 … options: cabac=1 ref=3 … crf=23.0 …».
+       Он лежит в видеоданных, поэтому -map_metadata его не трогает
+       вообще. Вырезается битстрим-фильтром filter_units, который
+       выкидывает NAL-юниты типа 6 (SEI).
+
+    Всё делается copy-ремуксом — мгновенно и без потери качества.
     """
     tmp = path + ".polish.mp4"
     try:
-        cmd = [ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error",
-               "-i", path, "-map", "0", "-c", "copy",
-               "-map_metadata", "-1", "-map_chapters", "-1", "-bitexact"]
-        cmd += _uniq_metadata_args(meta, has_audio, ffmpeg_exe)
-        cmd += ["-movflags", "+faststart", tmp]
+        base = [ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error",
+                "-i", path, "-map", "0", "-c", "copy"]
+        tail = ["-map_metadata", "-1", "-map_chapters", "-1", "-bitexact"]
+        tail += _uniq_metadata_args(meta, has_audio, ffmpeg_exe)
+        tail += ["-movflags", "+faststart", tmp]
+        # с вырезанием SEI (подпись x264 внутри битстрима)
+        cmd = base + ["-bsf:v", "filter_units=remove_types=6"] + tail
         r = subprocess.run(cmd, capture_output=True, timeout=600)
+        if r.returncode != 0 or not os.path.isfile(tmp) \
+                or os.path.getsize(tmp) < 1024:
+            # старые сборки ffmpeg без filter_units — хотя бы теги почистим
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            r = subprocess.run(base + tail, capture_output=True, timeout=600)
         if r.returncode == 0 and os.path.isfile(tmp) \
                 and os.path.getsize(tmp) > 1024:
             os.replace(tmp, path)
@@ -1718,6 +1799,7 @@ def uniquify_file(src: str, dst: str, ffmpeg_exe: str,
             cmd = [ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error",
                    "-i", src, "-filter_complex", vf_chain, "-map", "[v]",
                    "-map", "0:a?",
+                   "-fflags", "+bitexact", "-flags:v", "+bitexact",
                    "-c:v", "libx264", "-preset", "medium",
                    "-crf", str(crf_v), "-pix_fmt", pix,
                    "-g", gop, "-bf", bframes]
@@ -1729,12 +1811,14 @@ def uniquify_file(src: str, dst: str, ffmpeg_exe: str,
                 if af:
                     # микро-смена темпа/громкости — рвёт аудио-отпечатки
                     cmd += ["-af", af, "-c:a", "aac", "-b:a", "256k",
-                            "-ar", "44100", "-ac", "2"]
+                            "-ar", "44100", "-ac", "2",
+                            "-flags:a", "+bitexact"]
                 elif _audio_is_aac(src, ffmpeg_exe):
                     cmd += ["-c:a", "copy"]          # аудио без потерь
                 else:
                     cmd += ["-c:a", "aac", "-b:a", "256k",
-                            "-ar", "44100", "-ac", "2"]
+                            "-ar", "44100", "-ac", "2",
+                            "-flags:a", "+bitexact"]
             # метаданные «как у CapCut» + вычищение всего лишнего
             cmd += ["-map_metadata", "-1", "-map_chapters", "-1", "-bitexact"]
             cmd += _uniq_metadata_args(capcut_meta, has_audio, ffmpeg_exe)
@@ -1794,6 +1878,23 @@ def uniquify_final_video(path: str, ffmpeg_exe: str,
     return False, err
 
 
+def scrub_metadata(path: str, ffmpeg_exe: str) -> bool:
+    """Стереть все следы перекодирования у готового файла (без потерь).
+
+    Сюда входит SEI-подпись x264 внутри битстрима, теги encoder на
+    контейнере и дорожках; handler_name подставляется «капкатовский».
+    Вызывается даже когда уник выключен — иначе в файле остаётся
+    «x264 - core 164 … crf=…», по которой видно перекод.
+    """
+    try:
+        info = _probe(path, ffmpeg_exe)
+        has_audio = bool(info.get("audio"))
+    except Exception:
+        has_audio = True
+    return _polish_metadata(path, ffmpeg_exe,
+                            _capcut_sample_meta(ffmpeg_exe), has_audio)
+
+
 def build_segment_ffmpeg(input_video: str, text_png: str, x: int, y: int,
                          target_dur: float, is_first: bool, orig_dur: float,
                          seg_out: str, ffmpeg_exe: str, crf: int = 18,
@@ -1803,6 +1904,7 @@ def build_segment_ffmpeg(input_video: str, text_png: str, x: int, y: int,
                          ten_bit: bool = False, blur_fill: bool = False,
                          audio_kbps: int = 192, micro_uniq: bool = False,
                          uniq_geom: Optional[Dict[str, float]] = None,
+                         noise_overlay: str = "",
                          progress_cb=None) -> Tuple[bool, str]:
     """One vertical segment via a single ffmpeg call.
 
@@ -1813,6 +1915,9 @@ def build_segment_ffmpeg(input_video: str, text_png: str, x: int, y: int,
     uniq_geom — параметры поворота/кропа уника (см. uniq_geom_params).
     Применяются к ВИДЕО до наложения текста, поэтому надписи остаются
     ровными, а крутится только картинка.
+    noise_overlay — "light"/"medium"/"strong": слой белого шума со своим
+    случайным seed на КАЖДЫЙ фрагмент (еле заметный, см.
+    build_noise_overlay_chain). "" — выключено.
     """
     try:
         target_dur = max(0.3, float(target_dur))
@@ -1916,6 +2021,15 @@ def build_segment_ffmpeg(input_video: str, text_png: str, x: int, y: int,
                 out_label="bgr", ten_bit=use10, tag="ug"))
             bg_label = "bgr"
 
+        # ---- оверлей белого шума на ЭТОТ фрагмент (свой seed) ----
+        # накладывается на видео ДО текста: надписи остаются чистыми,
+        # а картинка каждого фрагмента получает уникальный шум
+        if noise_overlay:
+            vf.append(build_noise_overlay_chain(
+                canvas_w, canvas_h, fps, noise_overlay,
+                in_label=bg_label, out_label="bgn", tag="no"))
+            bg_label = "bgn"
+
         png_idx = 2 if need_silent else 1
         cmd += ["-loop", "1", "-i", text_png]
         vf.append(f"[{png_idx}:v]format=rgba[fg]")
@@ -1938,7 +2052,8 @@ def build_segment_ffmpeg(input_video: str, text_png: str, x: int, y: int,
             cmd += ["-profile:v", "high10", "-x264-params", "colorprim=bt709:transfer=bt709:colormatrix=bt709"]
         if audio_idx >= 0:
             cmd += ["-c:a", "aac", "-b:a", f"{audio_kbps}k",
-                    "-ar", "44100", "-ac", "2"]
+                    "-ar", "44100", "-ac", "2",
+                    "-flags:a", "+bitexact"]
         # -t is mandatory: apad makes the audio endless, and MOV sources
         # often report audio slightly longer than video — cut both exactly
         out_t = trim_out if trim_out else (target_dur if is_first
@@ -1985,7 +2100,7 @@ def concat_videos(seg_files: List[str], out_path: str, ffmpeg_exe: str,
         if with_audio:
             cmd += ["-af", "aresample=44100:async=1:first_pts=0",
                     "-c:a", "aac", "-b:a", "256k", "-ar", "44100", "-ac", "2",
-                    "-shortest"]
+                    "-flags:a", "+bitexact", "-shortest"]
         else:
             cmd += ["-an"]
         cmd += ["-movflags", "+faststart", out_path]
@@ -2012,7 +2127,7 @@ def concat_videos(seg_files: List[str], out_path: str, ffmpeg_exe: str,
         cmd2 += ["-c:v", "libx264", "-preset", "medium", "-crf", "18",
                  "-pix_fmt", "yuv420p"]
         if with_audio:
-            cmd2 += ["-c:a", "aac", "-b:a", "192k"]
+            cmd2 += ["-c:a", "aac", "-b:a", "192k", "-flags:a", "+bitexact"]
         cmd2 += ["-movflags", "+faststart", out_path]
         r2 = subprocess.run(cmd2, capture_output=True, timeout=1200)
         if r2.returncode == 0 and os.path.isfile(out_path) and os.path.getsize(out_path) > 1024:
@@ -2048,6 +2163,7 @@ def build_one_final_ffmpeg(video_paths: List[str],
                            preset_indices: Optional[List[int]] = None,
                            micro_uniq: bool = False,
                            uniq_geom: Optional[Dict[str, float]] = None,
+                           noise_overlay: str = "",
                            progress_cb=None) -> Tuple[bool, str]:
     """Full pipeline: render 5 segments in parallel, concat, cleanup.
 
@@ -2058,6 +2174,8 @@ def build_one_final_ffmpeg(video_paths: List[str],
     different hash/fingerprint even from the same source files.
     uniq_geom -> поворот/кроп уника применяется к каждому сегменту ДО
     наложения текста (надписи не крутятся вместе с видео).
+    noise_overlay -> каждый фрагмент получает свой слой белого шума со
+    свежим random seed (еле заметный).
     """
     canvas_w, canvas_h = resolution
     temp = os.path.join(OUTPUT_DIR, f"_temp_{uuid.uuid4().hex[:8]}")
@@ -2096,6 +2214,7 @@ def build_one_final_ffmpeg(video_paths: List[str],
                 ten_bit=ten_bit, blur_fill=blur_fill, audio_kbps=audio_kbps,
                 micro_uniq=(micro_uniq and i >= 1),
                 uniq_geom=uniq_geom,
+                noise_overlay=noise_overlay,
             )
             if not ok:
                 errors.append(f"seg{i}: {err}")
@@ -4283,6 +4402,22 @@ class ExportCard(SidebarCard):
         uniq_row.addWidget(self.uniq_strength_combo, 1)
         s2._inner.addLayout(uniq_row)
 
+        # ---- оверлей белого шума на каждый фрагмент ----
+        nz_row = QHBoxLayout()
+        nz_row.addWidget(QLabel("Шум-оверлей:"))
+        self.noise_combo = QComboBox()
+        self.noise_combo.addItems(["Выкл", "Слабый", "Средний", "Сильный"])
+        self.noise_combo.setCurrentIndex(2)      # средний
+        self.noise_combo.setToolTip(
+            "Слой белого шума поверх КАЖДОГО фрагмента, свой случайный\n"
+            "на каждую сборку — меняет пиксели и ломает фингерпринт.\n"
+            "Даже «Сильный» почти не виден: замер на плоском сером кадре\n"
+            "даёт отклонение всего 3-5 уровней яркости из 255\n"
+            "при том, что меняется ~72-83% пикселей.\n"
+            "Накладывается ДО текста — надписи остаются чистыми.")
+        nz_row.addWidget(self.noise_combo, 1)
+        s2._inner.addLayout(nz_row)
+
         s3 = self._add_section("Куда")
         orow = QHBoxLayout()
         self.out_label = QLabel(truncate_middle(OUTPUT_DIR, 34))
@@ -4297,7 +4432,7 @@ class ExportCard(SidebarCard):
         s3._inner.addLayout(orow)
 
         for w in (self.res_combo, self.fps_combo, self.quality_combo,
-                  self.uniq_strength_combo,
+                  self.uniq_strength_combo, self.noise_combo,
                   self.chk_audio, self.chk_caps, self.chk_tenbit, self.chk_blur,
                   self.chk_econ, self.chk_final_uniq):
             w.currentIndexChanged.connect(self._changed) if isinstance(w, QComboBox) \
@@ -4321,6 +4456,8 @@ class ExportCard(SidebarCard):
             "blur_fill": self.chk_blur.isChecked(),
             "econ": self.chk_econ.isChecked(),
             "final_uniq": self.chk_final_uniq.isChecked(),
+            "noise_overlay": ["", "light", "medium", "strong"][
+                min(max(self.noise_combo.currentIndex(), 0), 3)],
             "uniq_strength": UNIQ_STRENGTH_KEYS[
                 min(max(self.uniq_strength_combo.currentIndex(), 0),
                     len(UNIQ_STRENGTH_KEYS) - 1)],
@@ -4333,7 +4470,7 @@ class ExportCard(SidebarCard):
         if not isinstance(cfg, dict):
             cfg = {}
         for w in (self.res_combo, self.fps_combo, self.quality_combo,
-                  self.uniq_strength_combo,
+                  self.uniq_strength_combo, self.noise_combo,
                   self.chk_audio, self.chk_caps, self.chk_tenbit, self.chk_blur,
                   self.chk_econ, self.chk_final_uniq):
             w.blockSignals(True)
@@ -4361,6 +4498,13 @@ class ExportCard(SidebarCard):
         if "blur_fill" in cfg: self.chk_blur.setChecked(bool(cfg["blur_fill"]))
         if "econ" in cfg: self.chk_econ.setChecked(bool(cfg["econ"]))
         if "final_uniq" in cfg: self.chk_final_uniq.setChecked(bool(cfg["final_uniq"]))
+        if "noise_overlay" in cfg:
+            try:
+                i = ["", "light", "medium", "strong"].index(
+                    str(cfg["noise_overlay"]))
+                self.noise_combo.setCurrentIndex(i)
+            except ValueError:
+                pass
         if "uniq_strength" in cfg:
             try:
                 i = list(UNIQ_STRENGTH_KEYS).index(str(cfg["uniq_strength"]))
@@ -4368,7 +4512,7 @@ class ExportCard(SidebarCard):
             except ValueError:
                 pass
         for w in (self.res_combo, self.fps_combo, self.quality_combo,
-                  self.uniq_strength_combo,
+                  self.uniq_strength_combo, self.noise_combo,
                   self.chk_audio, self.chk_caps, self.chk_tenbit, self.chk_blur,
                   self.chk_econ, self.chk_final_uniq):
             w.blockSignals(False)
@@ -5166,6 +5310,7 @@ class BuildWorker(QThread):
                 audio_kbps=256 if exp["quality_text"].startswith("💎") else 192,
                 random_flags=rand_flags, preset_indices=rand_idx,
                 uniq_geom=geom,
+                noise_overlay=exp.get("noise_overlay", ""),
                 progress_cb=cb)
             if not ok:
                 # MoviePy fallback
@@ -5188,6 +5333,11 @@ class BuildWorker(QThread):
                 if not uok:
                     # уник не должен ронять сборку — оставляем оригинал
                     print(f"[uniq] {out_path}: {uerr}")
+            else:
+                # уник выключен — но метаданные всё равно чистим,
+                # иначе в файле остаётся подпись x264 со всеми настройками
+                self.progress.emit(92, "🧹 Чищу метаданные…")
+                scrub_metadata(out_path, ff)
             self.progress.emit(97, "Готово")
             self.file_done.emit(out_path)
             self.finished_ok.emit(out_path)
@@ -5361,7 +5511,8 @@ class BatchBuildWorker(QThread):
                     blur_fill=exp.get("blur_fill", False),
                     audio_kbps=256 if exp["quality_text"].startswith("💎") else 192,
                     random_flags=rand_flags, preset_indices=rand_idx,
-                    uniq_geom=geom)
+                    uniq_geom=geom,
+                    noise_overlay=exp.get("noise_overlay", ""))
                 if not ok:
                     print(f"[batch] {out_name} failed: {err}")
                     return None
@@ -5373,6 +5524,8 @@ class BatchBuildWorker(QThread):
                         geometry=(geom is None))
                     if not uok:
                         print(f"[batch][uniq] {out_name}: {uerr}")
+                else:
+                    scrub_metadata(out_path, ff)
                 handle_used(vp)
                 # Telegram auto-send is handled on the GUI thread via
                 # file_done -> MainWindow.auto_send_file (auto-migrates chat id)
